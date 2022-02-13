@@ -1,0 +1,21 @@
+CREATE TABLE blogs (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  is_draft BOOLEAN NOT NULL DEFAULT TRUE,
+  text VARCHAR,
+
+  added_by INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+
+  FOREIGN KEY (added_by) REFERENCES users(id)
+);
+
+CREATE TABLE paragraphs (
+  id SERIAL PRIMARY KEY,
+  blog_id INTEGER NOT NULL,
+  text VARCHAR NOT NULL,
+
+  created_at TIMESTAMPTZ NOT NULL,
+
+  FOREIGN KEY (blog_id) REFERENCES blogs(id)
+);

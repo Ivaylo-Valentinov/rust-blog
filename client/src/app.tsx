@@ -6,6 +6,9 @@ import { PublicRoute } from './auth/public-route';
 import { Login } from './auth/login';
 import { Register } from './auth/register';
 import { Toolbar } from './components/toolbar';
+import { PrivateRoute } from './auth/private-route';
+import { BlogLibrary } from './pages/blog-library';
+import { AddBlogForm } from './pages/add-blog-form';
 
 export default function App() {
   return (
@@ -24,7 +27,17 @@ export default function App() {
               <Register />
             </PublicRoute>
           } />
-          <Route path="*" element={<Navigate replace to="/login" />} />
+          <Route path="/blog/new" element={
+            <PrivateRoute>
+              <AddBlogForm />
+            </PrivateRoute>
+          } />
+          <Route path="/" element={
+            <PrivateRoute>
+              <BlogLibrary />
+            </PrivateRoute>
+          } />
+          <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </CurrentUserContextProvider>
     </BrowserRouter>

@@ -5,12 +5,14 @@ import { CssBaseline } from '@mui/material';
 import { PublicRoute } from './auth/public-route';
 import { Login } from './auth/login';
 import { Register } from './auth/register';
+import { Toolbar } from './components/toolbar';
 
 export default function App() {
   return (
     <BrowserRouter>
       <CurrentUserContextProvider>
         <CssBaseline />
+        <Toolbar />
         <Routes>
           <Route path="/login" element={
             <PublicRoute>

@@ -2,7 +2,7 @@
 use chrono::{DateTime, Local};
 use sqlx::{PgPool, Row};
 use serde::{Serialize, Deserialize};
-use bcrypt::{DEFAULT_COST, hash, verify};
+use bcrypt::{DEFAULT_COST, hash};
 use rand::random;
 
 fn rand_string() -> String {
@@ -20,33 +20,28 @@ pub struct User {
 }
 
 impl User {
-    pub async fn login(db: &PgPool, email: &String, password: &String) -> Result<Self, sqlx::Error> {
-        let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = $1").
+    pub async fn find_by_email(db: &PgPool, email: &String) -> Result<Self, sqlx::Error> {
+        sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = $1").
             bind(email).
-            fetch_one(db).await?;
-        
-        // let valid = verify(password, &result.password).unwrap();
-        // Look how should the error be returned
-        
+            fetch_one(db).await
+    }
+
+    pub async fn set_auth_token(&self, db: &PgPool) -> Result<(), sqlx::Error> {
         let auth_token = rand_string();
 
         sqlx::query("UPDATE users SET auth_token = $1 WHERE id = $2").
             bind(&auth_token).
-            bind(&result.id).
+            bind(&self.id).
             execute(db).await?;
 
-        let result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = $1").
-            bind(email).
-            fetch_one(db).await?;
-
-        Ok(result)
+        Ok(())
     }
 
-    // pub async fn get_user_by_auth_token(db: &PgPool, auth_token: &String) -> Result<Self, sqlx::Error> {
-    //     sqlx::query_as::<_, User>("SELECT * FROM users WHERE auth_token = $1").
-    //         bind(auth_token).
-    //         fetch_one(db).await
-    // }
+    pub async fn get_user_by_auth_token(db: &PgPool, auth_token: &String) -> Result<Self, sqlx::Error> {
+        sqlx::query_as::<_, User>("SELECT * FROM users WHERE auth_token = $1").
+            bind(auth_token).
+            fetch_one(db).await
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]

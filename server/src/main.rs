@@ -6,6 +6,7 @@ use dotenv::dotenv;
 mod handlers;
 mod models;
 mod routing;
+mod error;
 
 async fn hello_web(_request: HttpRequest) -> HttpResponse {
     HttpResponse::Ok().body("Hello, Web!")

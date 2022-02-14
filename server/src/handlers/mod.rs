@@ -1,16 +1,25 @@
-// use actix_web::{web, HttpRequest, HttpResponse, Result};
+use actix_web::{HttpResponse, Result};
+use serde::{Serialize};
+use http::StatusCode;
 
 pub mod users;
+use crate::error::{Error};
 
-// fn send_json(template: impl Template) -> HttpResponse {
-//   match template.render() {
-//       Ok(contents) => HttpResponse::Ok().body(contents),
-//       Err(e)       => HttpResponse::InternalServerError().body(format!("{}", e)),
-//   }
-// }
+pub fn send_json(data: Result<impl Serialize, sqlx::Error>) -> HttpResponse {
+  let error = Error {
+    message: String::from("Something went wrong...")
+  };
 
-// pub async fn send_error(request: HttpRequest) -> actix_web::Result<HttpResponse> {
-//   NamedFile::open("static/404.html")?.
-//       set_status_code(StatusCode::NOT_FOUND).
-//       into_response(&request)
-// }
+  match data {
+      Ok(contents) => HttpResponse::Ok().json(contents),
+      Err(_)       => HttpResponse::InternalServerError().json(error),
+  }
+}
+
+pub async fn send_error(string: &str) -> Result<HttpResponse> {
+  let error = Error {
+    message: String::from(string)
+  };
+
+  Ok(HttpResponse::build(StatusCode::FORBIDDEN).json(error))
+}

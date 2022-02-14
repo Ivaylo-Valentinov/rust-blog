@@ -37,7 +37,7 @@ class HttpService {
       headers: {
         ...options.headers,
         ...(currentAuth ?
-          { 'authorization': `Bearer ${currentAuth.authToken}` } :
+          { 'authorization': `Bearer ${currentAuth.auth_token}` } :
           {}
         )
       }

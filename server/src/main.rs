@@ -1,6 +1,11 @@
-use actix_web::{web, App, HttpRequest, HttpServer, HttpResponse};
+use actix_web::{guard, web, App, HttpRequest, HttpServer, HttpResponse};
+use actix_cors::Cors;
 use sqlx::PgPool;
 use dotenv::dotenv;
+
+mod handlers;
+mod models;
+mod routing;
 
 async fn hello_web(_request: HttpRequest) -> HttpResponse {
     HttpResponse::Ok().body("Hello, Web!")
@@ -18,8 +23,18 @@ async fn main() -> std::io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new().
-            app_data(db.clone()).
-            route("/", web::get().to(hello_web))
+        wrap(Cors::default().allow_any_origin().allow_any_method().allow_any_header()).
+        configure(routing::configuration()).
+        app_data(db.clone()).
+        default_service(
+            web::resource("").
+            route(web::get().to(hello_web)).
+            route(
+                web::route().
+                guard(guard::Not(guard::Get())).
+                to(HttpResponse::MethodNotAllowed),
+            ),
+        )
     });
 
     let addr = "127.0.0.1:7000";

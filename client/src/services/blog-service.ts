@@ -8,24 +8,24 @@ export interface BlogModel {
 
 export interface BlogParagraph {
   id: number;
-  blogId: number;
+  blog_id: number;
   order: number;
   text: string;
 }
 
 export interface BlogPostDetails extends BlogModel {
   likes: {
-    userLiked: boolean;
-    likeCount: number;
+    user_liked: boolean;
+    like_count: number;
   };
   pargraphs: BlogParagraph[];
 }
 
 export interface CommentModel {
   id: number;
-  userId: number;
-  blogId: number;
-  commentText: string;
+  user_id: number;
+  blog_id: number;
+  text: string;
 }
 
 export async function loadBlogPosts(pageNumber: number, pageSize: number): Promise<{ results: BlogModel[], pageCount: number | null }> {

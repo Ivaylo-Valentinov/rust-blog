@@ -5,5 +5,6 @@ CREATE TABLE users (
   password VARCHAR NOT NULL,
   auth_token VARCHAR,
 
-  created_at TIMESTAMPTZ NOT NULL
+  created_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (email)
 )

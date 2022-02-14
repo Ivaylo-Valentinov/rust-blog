@@ -3,7 +3,7 @@ import { httpService } from "./http-service";
 export interface UserAuth {
   name: string;
   email: string;
-  authToken: string;
+  auth_token: string;
   id: number;
 }
 

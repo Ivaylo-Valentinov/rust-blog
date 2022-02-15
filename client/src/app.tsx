@@ -9,6 +9,8 @@ import { Toolbar } from './components/toolbar';
 import { PrivateRoute } from './auth/private-route';
 import { BlogLibrary } from './pages/blog-library';
 import { AddBlogForm } from './pages/add-blog-form';
+import { DraftBlogForm } from './pages/draft-blog-form';
+import { Blog } from './pages/blog';
 
 export default function App() {
   return (
@@ -30,6 +32,16 @@ export default function App() {
           <Route path="/blog/new" element={
             <PrivateRoute>
               <AddBlogForm />
+            </PrivateRoute>
+          } />
+          <Route path="/blog/:id/draft" element={
+            <PrivateRoute>
+              <DraftBlogForm />
+            </PrivateRoute>
+          } />
+          <Route path="/blog/:id" element={
+            <PrivateRoute>
+              <Blog />
             </PrivateRoute>
           } />
           <Route path="/" element={

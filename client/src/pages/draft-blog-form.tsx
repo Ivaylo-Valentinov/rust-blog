@@ -6,7 +6,7 @@ import { SubmitButton } from '../components/submit-button';
 import { useMutation } from '../hooks/use-mutation';
 import { addDraftBlogPost } from '../services/blog-service';
 
-export function AddBlogForm() {
+export function DraftBlogForm() {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export function AddBlogForm() {
       <Container
         component="div"
         maxWidth="sm"
-        sx={{display: 'flex', flexDirection: 'column', gridGap: '10px', marginTop: '40px',}}
+        sx={{display: 'grid', gridTemplateRows: '1fr 1fr', gridGap: '10px', marginTop: '40px',}}
       >
         <TextField
           required
@@ -36,23 +36,13 @@ export function AddBlogForm() {
           type="text"
           onChange={event => setTitle(event.target.value)}
         />
-        <TextField
-          required
-          label="Enter the blog text here"
-          multiline
-          rows={20}
-          value={text}
-          variant="outlined"
-          onChange={event => setText(event.target.value)}
-          sx={{flexGrow: 1}}
-        />
         <SubmitButton
           loading={loading}
           error={error}
           type="submit"
           variant="contained"
           color="primary"
-        ><AddCircleOutlinedIcon />Create draft</SubmitButton>
+        ><AddCircleOutlinedIcon />Publish</SubmitButton>
       </Container>
     </form>
   );

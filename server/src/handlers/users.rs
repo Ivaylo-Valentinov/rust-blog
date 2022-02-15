@@ -46,3 +46,10 @@ pub async fn login(
     Err(_) => send_error("Invalid credentials!").await
   }
 }
+
+pub async fn something(
+  _db:   web::Data<PgPool>,
+  user: User
+) -> Result<HttpResponse> {
+  Ok(send_json(Ok(&user)))
+}

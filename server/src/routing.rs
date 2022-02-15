@@ -6,6 +6,10 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
     Box::new(|cfg: &mut web::ServiceConfig| {
         cfg.
             route("/users", web::post().to(handlers::users::register)).
-            route("/auth", web::post().to(handlers::users::login));
+            route("/auth", web::post().to(handlers::users::login)).
+            service(
+                web::resource("/test").
+                route(web::get().to(handlers::users::something))
+            );
     })
 }

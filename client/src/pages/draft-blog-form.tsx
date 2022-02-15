@@ -1,16 +1,30 @@
 import React, { useState, FormEvent } from 'react';
 import { Box, Container, Switch, TextField, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutline';
 import { SubmitButton } from '../components/submit-button';
 import { useMutation } from '../hooks/use-mutation';
-import { publishBlogPost, saveDraftBlogPost } from '../services/blog-service';
+import { loadDraftById, publishBlogPost, saveDraftBlogPost } from '../services/blog-service';
+import { Loading } from '../components/loading';
+import { useAsync } from '../hooks/use-async';
 
 export function DraftBlogForm() {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const navigate = useNavigate();
   const [checked, setChecked] = useState(true);
+
+  const { id } = useParams<{ id: string }>();
+
+  const {loading, error} = useAsync(async () => {
+    const draft = await loadDraftById(id!);
+    if (draft) {
+      setTitle(draft.title);
+      setText(draft.text!);
+    }
+
+    return draft;
+  }, [id]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     unsetDraft();
@@ -19,12 +33,12 @@ export function DraftBlogForm() {
   };
 
   const { submit: submitDraft, loading: loadingDraft, error: errorDraft, unsetError: unsetDraft } = useMutation(async () => {
-    await saveDraftBlogPost("1", title, text);
+    await saveDraftBlogPost(id!, title, text);
     navigate('/');
   });
 
   const { submit: submitPublish, loading: loadingPublish, error: errorPublish, unsetError: unsetPublish } = useMutation(async () => {
-    await publishBlogPost("1");
+    await publishBlogPost(id!);
     navigate('/');
   });
 
@@ -38,7 +52,8 @@ export function DraftBlogForm() {
   }
 
   return (
-    <form onSubmit={submitForm} >
+    <Loading loading={loading} error={error} size={200}>
+      {() => <form onSubmit={submitForm} >
       <Container
         component="div"
         maxWidth="sm"
@@ -80,6 +95,7 @@ export function DraftBlogForm() {
         </Box>
         <Typography>* "Publish" will publish the last saved draft version.</Typography>
       </Container>
-    </form>
+    </form>}
+    </Loading>
   );
 }

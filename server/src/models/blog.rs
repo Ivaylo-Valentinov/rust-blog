@@ -44,9 +44,9 @@ impl Blog {
                 text  = $2
             WHERE id = $3;
         "#).
-            bind(&self.id).
             bind(&new_draft.title).
             bind(&new_draft.text).
+            bind(&self.id).
             execute(db).await?;
 
         Ok(())

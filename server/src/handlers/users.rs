@@ -18,12 +18,7 @@ pub async fn register(
 ) -> Result<HttpResponse> {
   let new_user = form.into_inner();
 
-  match new_user.insert(&db).await {
-      Ok(smth) => {
-          Ok(HttpResponse::Ok().json(smth))
-      },
-      Err(e) => Ok(HttpResponse::InternalServerError().body(format!("{}", e))),
-  }
+  send_json(new_user.insert(&db).await)
 }
 
 pub async fn login(
@@ -39,17 +34,10 @@ pub async fn login(
       }
 
       match person.set_auth_token(&db).await {
-        Ok(_)  => Ok(send_json(User::find_by_email(&db, &form.email).await)),
+        Ok(_)  => send_json(User::find_by_email(&db, &form.email).await),
         Err(_) => send_error("Invalid credentials!").await
       }
     },
     Err(_) => send_error("Invalid credentials!").await
   }
-}
-
-pub async fn something(
-  _db:   web::Data<PgPool>,
-  user: User
-) -> Result<HttpResponse> {
-  Ok(send_json(Ok(&user)))
 }

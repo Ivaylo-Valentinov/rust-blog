@@ -26,7 +26,7 @@ export function AddBlogForm() {
       <Container
         component="div"
         maxWidth="sm"
-        sx={{display: 'flex', flexDirection: 'column', gridGap: '10px', marginTop: '40px',}}
+        sx={{display: 'flex', flexDirection: 'column', gridGap: '10px', marginTop: '40px'}}
       >
         <TextField
           required

@@ -14,6 +14,7 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
                 route(web::get().to(handlers::blogs::get_published_blog)). //Get published post
                 route(web::post().to(handlers::blogs::something)) //Publish draft post
             ).
+            route("/post/{id}/edit", web::post().to(handlers::blogs::something)). //Add new paragraphs
             service(
                 web::resource("/posts").
                 route(web::get().to(handlers::blogs::get_published_paginated)). //Get paginated list of blogs and search

@@ -59,6 +59,7 @@ impl Blog {
             SELECT * 
             FROM blogs
             WHERE added_by = $1 and is_draft = TRUE
+            ORDER BY created_at DESC
             OFFSET $2
             LIMIT $3
         "#).
@@ -88,16 +89,18 @@ impl Blog {
         })
     }
 
-    pub async fn find_all_published(db: &PgPool, page_number: &i32, page_size: &i32) -> Result<PaginatedBlogs, sqlx::Error> {
+    pub async fn find_all_published(db: &PgPool, search: &str, page_number: &i32, page_size: &i32) -> Result<PaginatedBlogs, sqlx::Error> {
         let offset = page_number * page_size;
 
         let mut rows = sqlx::query_as::<_, Blog>(r#"
             SELECT * 
             FROM blogs
-            WHERE is_draft = FALSE
-            OFFSET $1
-            LIMIT $2
+            WHERE title LIKE $1 and is_draft = FALSE
+            ORDER BY created_at DESC
+            OFFSET $2
+            LIMIT $3
         "#).
+            bind(search).
             bind(offset).
             bind(page_size).
             fetch(db);
@@ -110,8 +113,9 @@ impl Blog {
         let count = sqlx::query(r#"
             SELECT COUNT(*) as count
             FROM blogs
-            WHERE is_draft = FALSE
+            WHERE title LIKE $1 and is_draft = FALSE
         "#).
+            bind(search).
             fetch_one(db);
 
         let total = count.await?.try_get("count")?;

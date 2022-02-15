@@ -116,7 +116,10 @@ pub async fn get_published_paginated(
 ) -> Result<HttpResponse> {
   let pagination = params.into_inner();
 
-  send_json(Blog::find_all_published(&db, &pagination.page_number, &pagination.page_size).await)
+  let mut search = pagination.title.unwrap_or(String::from(""));
+  search.push_str("%");
+
+  send_json(Blog::find_all_published(&db, &search, &pagination.page_number, &pagination.page_size).await)
 }
 
 pub async fn something(

@@ -32,7 +32,7 @@ export async function loadBlogPosts(pageNumber: number, pageSize: number): Promi
   if (pageSize === 0) {
     return { results: [], pageCount: null };
   }
-  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/posts?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/posts?page_number=${pageNumber}&page_size=${pageSize}`);
   if (total === 0) {
     return { results: [], pageCount: null };
   }
@@ -44,7 +44,7 @@ export async function loadDraftPosts(pageNumber: number, pageSize: number): Prom
   if (pageSize === 0) {
     return { results: [], pageCount: null };
   }
-  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/drafts?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/drafts?page_number=${pageNumber}&page_size=${pageSize}`);
   if (total === 0) {
     return { results: [], pageCount: null };
   }
@@ -108,7 +108,7 @@ export async function loadSearchBlogByTitle(title: string, pageNumber: number, p
   if (pageSize === 0) {
     return { results: [], pageCount: null };
   }
-  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/posts?title=${title}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  const { results, total } = await httpService.get<{ results: BlogModel[], total: number }>(`/posts?title=${title}&page_number=${pageNumber}&page_size=${pageSize}`);
   if (total === 0) {
     return { results: [], pageCount: null };
   }

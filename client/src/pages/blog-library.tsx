@@ -1,14 +1,15 @@
 import React from 'react';
-import { Container, Button, Box, Typography } from '@mui/material';
+import { Container, Button, Box } from '@mui/material';
 import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutline';
 import { Link } from 'react-router-dom';
+import { BlogList } from '../components/blog-list';
 
 export function BlogLibrary() {
   return (
     <Container component="div" maxWidth="md" sx={{
       display: 'grid',
       justifyContent: 'center',
-      paddingTop: 20
+      paddingTop: 5
     }} >
       <Box sx={{
         display: 'grid',
@@ -24,7 +25,8 @@ export function BlogLibrary() {
           to="/blog/new"
         >Add Blog</Button>
       </Box>
-      <Typography>No blogs</Typography>
+      <BlogList isDraft={true} />
+      <BlogList />
     </Container>
   );
 }

@@ -16,8 +16,8 @@ pub struct Blog {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PaginatedBlogs {
-    pub result: Vec<Blog>,
-    pub total: i32
+    pub results: Vec<Blog>,
+    pub total: i64
 }
 
 
@@ -83,7 +83,7 @@ impl Blog {
         let total = count.await?.try_get("count")?;
 
         Ok(PaginatedBlogs{
-            result: drafts,
+            results: drafts,
             total
         })
     }
@@ -117,7 +117,7 @@ impl Blog {
         let total = count.await?.try_get("count")?;
 
         Ok(PaginatedBlogs{
-            result: blogs,
+            results: blogs,
             total
         })
     }

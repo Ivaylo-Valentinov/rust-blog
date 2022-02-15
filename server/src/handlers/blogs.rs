@@ -1,10 +1,17 @@
 use actix_web::{web, HttpResponse, Result};
 use sqlx::PgPool;
-// use serde::{Serialize, Deserialize};
+use serde::{Deserialize};
 
 use crate::models::user::{User};
 use crate::models::blog::{NewDraft, Blog};
 use super::*;
+
+#[derive(Debug, Deserialize)]
+pub struct Pagination {
+  pub title: Option<String>,
+  pub page_number: i32,
+  pub page_size: i32
+}
 
 pub async fn create_new_draft(
   db:   web::Data<PgPool>,
@@ -46,7 +53,7 @@ pub async fn update_new_draft(
 
 pub async fn get_published_blog(
   db:   web::Data<PgPool>,
-  _: User,
+  _:    User,
   path: web::Path<i32>
 ) -> Result<HttpResponse> {
   let web::Path(id) = path;
@@ -90,6 +97,26 @@ pub async fn get_draft_blog(
   }
 
   send_json(Ok(blog))
+}
+
+pub async fn get_drafts_paginated(
+  db:     web::Data<PgPool>,
+  user:   User,
+  params: web::Query<Pagination>
+) -> Result<HttpResponse> {
+  let pagination = params.into_inner();
+
+  send_json(Blog::find_all_drafts(&db, &user, &pagination.page_number, &pagination.page_size).await)
+}
+
+pub async fn get_published_paginated(
+  db:     web::Data<PgPool>,
+  _:      User,
+  params: web::Query<Pagination>
+) -> Result<HttpResponse> {
+  let pagination = params.into_inner();
+
+  send_json(Blog::find_all_published(&db, &pagination.page_number, &pagination.page_size).await)
 }
 
 pub async fn something(

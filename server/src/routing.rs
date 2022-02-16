@@ -20,6 +20,17 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
         route(web::get().to(handlers::blogs::get_published_paginated)). //Get paginated list of blogs and search
         route(web::post().to(handlers::blogs::create_new_draft)) //Create draft post
       ).
+      service(
+        web::resource("/posts/{id}/likes").
+        route(web::post().to(handlers::blogs::something)). //Like
+        route(web::delete().to(handlers::blogs::something)) //Dislike
+      ).
+      service(
+        web::resource("/comments").
+        route(web::get().to(handlers::blogs::something)). //Add comment
+        route(web::post().to(handlers::blogs::something)) //Get paginated comments
+      ).
+      route("/comments/{id}", web::delete().to(handlers::blogs::something)). //Delete comment
       route("/posts/{id}/draft", web::post().to(handlers::blogs::update_new_draft)); //Save draft post
   })
 }

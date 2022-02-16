@@ -14,12 +14,12 @@ export interface BlogParagraph {
 }
 
 export interface BlogPostDetails {
-  // likes: {
-  //   user_liked: boolean;
-  //   like_count: number;
-  // };
   blog: BlogModel;
-  pargraphs: BlogParagraph[];
+  paragraphs: BlogParagraph[];
+  likes: {
+    user_liked: boolean;
+    like_count: number;
+  };
 }
 
 export interface CommentModel {
@@ -61,37 +61,49 @@ export async function loadPostById(id: string): Promise<BlogPostDetails | null> 
   return httpService.get<BlogPostDetails | null>(`/posts/${id}`);
 }
 
-// export async function loadCommentsUsingParagraphId(paragraphId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
-//   if (pageSize === 0) {
-//     return { results: [], pageCount: null };
-//   }
-//   const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?paragraphId=${paragraphId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
-//   if (total === 0) {
-//     return { results: [], pageCount: null };
-//   }
-//   const pageCount = Math.ceil(total / pageSize - 1);
-//   return { results, pageCount };
-// }
+export async function loadCommentsUsingParagraphId(paragraphId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
+  if (pageSize === 0) {
+    return { results: [], pageCount: null };
+  }
+  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?paragraphId=${paragraphId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  if (total === 0) {
+    return { results: [], pageCount: null };
+  }
+  const pageCount = Math.ceil(total / pageSize - 1);
+  return { results, pageCount };
+}
 
-// export async function loadCommentsUsingPostId(blogId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
-//   if (pageSize === 0) {
-//     return { results: [], pageCount: null };
-//   }
-//   const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?blogId=${blogId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
-//   if (total === 0) {
-//     return { results: [], pageCount: null };
-//   }
-//   const pageCount = Math.ceil(total / pageSize - 1);
-//   return { results, pageCount };
-// }
+export async function loadCommentsUsingPostId(blogId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
+  if (pageSize === 0) {
+    return { results: [], pageCount: null };
+  }
+  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?blogId=${blogId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  if (total === 0) {
+    return { results: [], pageCount: null };
+  }
+  const pageCount = Math.ceil(total / pageSize - 1);
+  return { results, pageCount };
+}
 
-// export async function addComment(blogId: number, commentText: string, pargraphId: number | null) {
-//   return httpService.post<CommentModel>('/comments', { blogId, commentText, pargraphId });
-// }
+export async function addComment(blogId: number, commentText: string, paragraphId?: number) {
+  if (paragraphId !== undefined) {
+    return httpService.post<CommentModel>('/comments', { blogId, commentText, paragraphId });
+  }
+  
+  return httpService.post<CommentModel>('/comments', { blogId, commentText, paragraphId });
+}
 
-// export async function deleteComment(id: number) {
-//   return httpService.delete<CommentModel>(`/comments/${id}`)
-// }
+export async function deleteComment(id: number) {
+  return httpService.delete<CommentModel>(`/comments/${id}`)
+}
+
+export async function likePost(id: string) {
+  return httpService.post(`/posts/${id}/likes`, {});
+}
+
+export async function dislikePost(id: string) {
+  return httpService.delete(`/posts/${id}/likes`);
+}
 
 export async function addDraftBlogPost(title: string, text: string) {
   return httpService.post<BlogModel>('/posts', { title, text });

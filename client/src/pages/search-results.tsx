@@ -16,7 +16,6 @@ const StyledDiv = styled('div')(() => ({
   gridAutoRows: 200,
 }));
 
-
 const PAGE_SIZE = 10;
 
 export function SearchResults() {

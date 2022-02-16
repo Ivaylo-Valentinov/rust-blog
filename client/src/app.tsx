@@ -11,6 +11,7 @@ import { BlogLibrary } from './pages/blog-library';
 import { AddBlogForm } from './pages/add-blog-form';
 import { DraftBlogForm } from './pages/draft-blog-form';
 import { Blog } from './pages/blog';
+import { SearchResults } from './pages/search-results';
 
 export default function App() {
   return (
@@ -42,6 +43,11 @@ export default function App() {
           <Route path="/blog/:id" element={
             <PrivateRoute>
               <Blog />
+            </PrivateRoute>
+          } />
+          <Route path="/search/:title" element={
+            <PrivateRoute>
+              <SearchResults />
             </PrivateRoute>
           } />
           <Route path="/" element={

@@ -12,8 +12,8 @@ pub fn send_json(data: Result<impl Serialize, sqlx::Error>) -> HttpResponse {
   };
 
   match data {
-      Ok(contents) => HttpResponse::Ok().json(contents),
-      Err(_)       => HttpResponse::InternalServerError().json(error)
+    Ok(contents) => HttpResponse::Ok().json(contents),
+    Err(_)       => HttpResponse::InternalServerError().json(error)
   }
 }
 

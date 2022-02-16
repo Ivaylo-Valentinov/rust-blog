@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Result};
+use actix_web::{web, HttpResponse};
 use sqlx::PgPool;
 use serde::{Deserialize};
 
@@ -17,7 +17,7 @@ pub async fn create_new_draft(
   db:   web::Data<PgPool>,
   user: User,
   form: web::Json<NewDraft>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let new_draft = form.into_inner();
 
   send_json(new_draft.insert(&db, &user).await)
@@ -28,24 +28,24 @@ pub async fn update_new_draft(
   user: User,
   path: web::Path<i32>,
   form: web::Json<NewDraft>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let new_draft = form.into_inner();
   let web::Path(id) = path;
 
   let blog = Blog::find_by_id(&db, &id).await;
 
   if let Err(_) = blog {
-    return send_error("Not valid id!").await
+    return send_error("Not valid id!")
   }
 
   let blog = blog.unwrap();
 
   if !blog.is_draft {
-    return send_error("Cannot edit published blog posts!").await
+    return send_error("Cannot edit published blog posts!")
   }
 
   if blog.added_by != user.id {
-    return send_error("Cannot edit drafts you don't own!").await
+    return send_error("Cannot edit drafts you don't own!")
   }
 
   send_json(blog.update(&db, &new_draft).await)
@@ -55,19 +55,19 @@ pub async fn get_published_blog(
   db:   web::Data<PgPool>,
   _:    User,
   path: web::Path<i32>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let web::Path(id) = path;
 
   let blog = Blog::find_by_id(&db, &id).await;
 
   if let Err(_) = blog {
-    return send_error("Not valid id!").await
+    return send_error("Not valid id!")
   }
 
   let blog = blog.unwrap();
 
   if blog.is_draft {
-    return send_error("This is not a published post!").await
+    return send_error("This is not a published post!")
   }
 
   send_json(Ok(blog))
@@ -77,23 +77,23 @@ pub async fn get_draft_blog(
   db:   web::Data<PgPool>,
   user: User,
   path: web::Path<i32>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let web::Path(id) = path;
 
   let blog = Blog::find_by_id(&db, &id).await;
 
   if let Err(_) = blog {
-    return send_error("Not valid id!").await
+    return send_error("Not valid id!")
   }
 
   let blog = blog.unwrap();
 
   if !blog.is_draft {
-    return send_error("This is a published post!").await
+    return send_error("This is a published post!")
   }
 
   if blog.added_by != user.id {
-    return send_error("Cannot see drafts you don't own!").await
+    return send_error("Cannot see drafts you don't own!")
   }
 
   send_json(Ok(blog))
@@ -103,7 +103,7 @@ pub async fn get_drafts_paginated(
   db:     web::Data<PgPool>,
   user:   User,
   params: web::Query<Pagination>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let pagination = params.into_inner();
 
   send_json(Blog::find_all_drafts(&db, &user, &pagination.page_number, &pagination.page_size).await)
@@ -113,7 +113,7 @@ pub async fn get_published_paginated(
   db:     web::Data<PgPool>,
   _:      User,
   params: web::Query<Pagination>
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   let pagination = params.into_inner();
 
   let mut search = pagination.title.unwrap_or(String::from(""));
@@ -125,6 +125,6 @@ pub async fn get_published_paginated(
 pub async fn something(
   _db:   web::Data<PgPool>,
   user: User
-) -> Result<HttpResponse> {
+) -> HttpResponse {
   send_json(Ok(&user))
 }

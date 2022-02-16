@@ -32,7 +32,7 @@ export function ListedBlog(props: ListedBlogProps) {
             text-align="center" 
             component="p" 
             sx={{
-              width: '250px',
+              width: '220px',
               textAlign: 'center',
               whiteSpace: 'nowrap',
               overflow: 'hidden',

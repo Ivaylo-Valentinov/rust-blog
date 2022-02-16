@@ -13,11 +13,12 @@ export interface BlogParagraph {
   text: string;
 }
 
-export interface BlogPostDetails extends BlogModel {
+export interface BlogPostDetails {
   // likes: {
   //   user_liked: boolean;
   //   like_count: number;
   // };
+  blog: BlogModel;
   pargraphs: BlogParagraph[];
 }
 

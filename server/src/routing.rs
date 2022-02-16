@@ -12,7 +12,7 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
       service(
         web::resource("/posts/{id}").
         route(web::get().to(handlers::blogs::get_published_blog)). //Get published post
-        route(web::post().to(handlers::blogs::something)) //Publish draft post
+        route(web::post().to(handlers::blogs::publish)) //Publish draft post
       ).
       route("/post/{id}/edit", web::post().to(handlers::blogs::something)). //Add new paragraphs
       service(

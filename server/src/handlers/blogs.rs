@@ -122,6 +122,32 @@ pub async fn get_published_paginated(
   send_json(Blog::find_all_published(&db, &search, &pagination.page_number, &pagination.page_size).await)
 }
 
+pub async fn publish(
+  db:   web::Data<PgPool>,
+  user: User,
+  path: web::Path<i32>
+) -> HttpResponse {
+  let web::Path(id) = path;
+
+  let blog = Blog::find_by_id(&db, &id).await;
+
+  if let Err(_) = blog {
+    return send_error("Not valid id!")
+  }
+
+  let blog = blog.unwrap();
+
+  if !blog.is_draft {
+    return send_error("This is a published post!")
+  }
+
+  if blog.added_by != user.id {
+    return send_error("Cannot publish drafts you don't own!")
+  }
+
+  send_json(blog.publish(&db).await)
+}
+
 pub async fn something(
   _db:   web::Data<PgPool>,
   user: User

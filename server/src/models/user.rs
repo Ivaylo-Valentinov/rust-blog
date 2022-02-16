@@ -13,7 +13,7 @@ fn rand_string() -> String {
   generate(64, charset)
 }
 
-fn get_authorization<'a>(req: &'a HttpRequest) -> Option<&'a str> {
+fn get_authorization(req: &HttpRequest) -> Option<&str> {
   req.headers().get("authorization")?.to_str().ok()
 }
 

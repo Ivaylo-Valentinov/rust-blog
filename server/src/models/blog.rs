@@ -4,6 +4,10 @@ use serde::{Serialize, Deserialize};
 use futures::TryStreamExt;
 use crate::models::user::User;
 
+fn split_text_into_paragraphs(text: &str) -> Vec<&str> {
+  text.split("\n").filter(|&x| !x.is_empty()).collect::<Vec<&str>>()
+}
+
 #[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Blog {
   pub id: i32,
@@ -19,7 +23,6 @@ pub struct PaginatedBlogs {
   pub results: Vec<Blog>,
   pub total: i64
 }
-
 
 #[derive(Debug, sqlx::FromRow, Serialize, Deserialize)]
 pub struct Paragraph {
@@ -125,6 +128,32 @@ impl Blog {
       total
     })
   }
+
+  pub async fn publish(&self, db: &PgPool)-> Result<(), sqlx::Error> {
+    let text = &self.text.clone().unwrap();
+    let paragraphs = split_text_into_paragraphs(&text);
+
+    for paragraph_text in paragraphs.iter() {
+      let new_paragraph = NewParagraph {
+        blog_id: self.id.clone(),
+        text: String::from(*paragraph_text)
+      };
+
+      new_paragraph.insert(&db).await?;
+    }
+
+    sqlx::query(r#"
+      UPDATE blogs 
+      SET
+        is_draft = FALSE,
+        text = NULL 
+      WHERE id = $1
+    "#).
+      bind(&self.id).
+      execute(db).await?;
+
+    Ok(())
+  }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -145,6 +174,28 @@ impl NewDraft {
       bind(&self.title).
       bind(&self.text).
       bind(&user.id).
+      fetch_one(db);
+
+    result.await?.try_get("id")
+  }
+}
+
+pub struct NewParagraph {
+  pub blog_id: i32,
+  pub text: String
+}
+
+impl NewParagraph {
+  pub async fn insert(&self, db: &PgPool) -> Result<i32, sqlx::Error> {
+    let result = sqlx::query(r#"
+      INSERT INTO paragraphs
+      (blog_id, text, created_at)
+      VALUES
+      ($1, $2, NOW())
+      RETURNING id;
+    "#).
+      bind(&self.blog_id).
+      bind(&self.text).
       fetch_one(db);
 
     result.await?.try_get("id")

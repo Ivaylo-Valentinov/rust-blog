@@ -3,13 +3,13 @@ import { httpService } from "./http-service";
 export interface BlogModel {
   id: number;
   title: string;
+  added_by: number;
   text?: string;
 }
 
 export interface BlogParagraph {
   id: number;
   blog_id: number;
-  order: number;
   text: string;
 }
 

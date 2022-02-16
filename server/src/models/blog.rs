@@ -156,6 +156,26 @@ impl Blog {
   }
 }
 
+impl Paragraph {
+  pub async fn get_all_paragraphs_by_blog_id(db: &PgPool, blog_id: &i32) -> Result<Vec<Paragraph>, sqlx::Error> {
+    let mut rows = sqlx::query_as::<_, Paragraph>(r#"
+      SELECT * 
+      FROM paragraphs
+      WHERE blog_id = $1
+      ORDER BY created_at ASC
+    "#).
+      bind(blog_id).
+      fetch(db);
+
+    let mut paragraphs = Vec::new();
+    while let Some(paragraph) = rows.try_next().await? {
+      paragraphs.push(paragraph);
+    }
+
+    Ok(paragraphs)
+  }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct NewDraft {
   pub title: String,

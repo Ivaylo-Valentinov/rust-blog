@@ -1,9 +1,9 @@
 use actix_web::{web, HttpResponse};
 use sqlx::PgPool;
-use serde::{Deserialize};
+use serde::{Serialize, Deserialize};
 
 use crate::models::user::{User};
-use crate::models::blog::{NewDraft, Blog};
+use crate::models::blog::{NewDraft, Blog, Paragraph};
 use super::*;
 
 #[derive(Debug, Deserialize)]
@@ -11,6 +11,12 @@ pub struct Pagination {
   pub title: Option<String>,
   pub page_number: i32,
   pub page_size: i32
+}
+
+#[derive(Debug, Serialize)]
+pub struct BlogDetails {
+  pub blog: Blog,
+  pub paragraphs: Vec<Paragraph>
 }
 
 pub async fn create_new_draft(
@@ -70,7 +76,18 @@ pub async fn get_published_blog(
     return send_error("This is not a published post!")
   }
 
-  send_json(Ok(blog))
+  let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await;
+
+  if let Err(_) = paragraphs {
+    return send_error("Paragraph error!")
+  }
+
+  let paragraphs = paragraphs.unwrap();
+
+  send_json(Ok(BlogDetails {
+    blog,
+    paragraphs
+  }))
 }
 
 pub async fn get_draft_blog(

@@ -4,6 +4,8 @@ use http::StatusCode;
 
 pub mod users;
 pub mod blogs;
+pub mod comments;
+pub mod likes;
 use crate::error::{Error};
 
 pub fn send_json(data: Result<impl Serialize, sqlx::Error>) -> HttpResponse {

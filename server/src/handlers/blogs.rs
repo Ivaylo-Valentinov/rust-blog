@@ -4,6 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::models::user::{User};
 use crate::models::blog::{NewDraft, Blog, Paragraph};
+use crate::models::like::{Like, LikeInfo};
 use super::*;
 
 #[derive(Debug, Deserialize)]
@@ -16,7 +17,8 @@ pub struct Pagination {
 #[derive(Debug, Serialize)]
 pub struct BlogDetails {
   pub blog: Blog,
-  pub paragraphs: Vec<Paragraph>
+  pub paragraphs: Vec<Paragraph>,
+  pub likes: LikeInfo
 }
 
 pub async fn create_new_draft(
@@ -59,7 +61,7 @@ pub async fn update_new_draft(
 
 pub async fn get_published_blog(
   db:   web::Data<PgPool>,
-  _:    User,
+  user: User,
   path: web::Path<i32>
 ) -> HttpResponse {
   let web::Path(id) = path;
@@ -84,9 +86,18 @@ pub async fn get_published_blog(
 
   let paragraphs = paragraphs.unwrap();
 
+  let likes = Like::get_likes_info(&db, &user.id, &id).await;
+
+  if let Err(_) = likes {
+    return send_error("Like error!")
+  }
+
+  let likes = likes.unwrap();
+
   send_json(Ok(BlogDetails {
     blog,
-    paragraphs
+    paragraphs,
+    likes
   }))
 }
 

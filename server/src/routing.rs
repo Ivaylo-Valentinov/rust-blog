@@ -22,8 +22,8 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
       ).
       service(
         web::resource("/posts/{id}/likes").
-        route(web::post().to(handlers::blogs::something)). //Like
-        route(web::delete().to(handlers::blogs::something)) //Dislike
+        route(web::post().to(handlers::likes::like)). //Like
+        route(web::delete().to(handlers::likes::dislike)) //Dislike
       ).
       service(
         web::resource("/comments").

@@ -12,7 +12,7 @@ import { useMutation } from '../hooks/use-mutation';
 import { SubmitButton } from './submit-button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useCurrentUser } from '../context/current-user';
-import { addComment, deleteComment, loadCommentsUsingPostId } from '../services/blog-service';
+import { addComment, deleteComment, loadCommentsUsingParagraphId, loadCommentsUsingPostId } from '../services/blog-service';
 
 interface CommentsProps {
   blogId: number;
@@ -33,7 +33,14 @@ export function Comments(props: CommentsProps) {
   const [commentText, setCommentText] = useState('');
   const user = useCurrentUser();
 
-  const { data: comments, loading, error, reload } = useAsync(() => loadCommentsUsingPostId(props.blogId, pageNumber, PAGE_SIZE), [props.blogId, pageNumber]);
+  const { data: comments, loading, error, reload } = useAsync(() => {
+    if (props.paragraphId !== undefined) {
+      return loadCommentsUsingParagraphId(props.blogId, props.paragraphId, pageNumber, PAGE_SIZE);
+    }
+  
+    return loadCommentsUsingPostId(props.blogId, pageNumber, PAGE_SIZE);
+  }, [props.blogId, props.paragraphId, pageNumber]);
+
   const { submit: submitComment, loading: mutationLoading, error: mutationError, unsetError } = useMutation(async () => {
     await addComment(props.blogId, commentText, props.paragraphId);
     setCommentText('');

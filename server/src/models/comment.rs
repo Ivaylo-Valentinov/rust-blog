@@ -95,7 +95,7 @@ impl Comment {
     let count = sqlx::query(r#"
       SELECT COUNT(*) as count
       FROM comments
-      WHERE blog_id = $1 and paragraph_id = $3
+      WHERE blog_id = $1 and paragraph_id = $2
     "#).
       bind(blog_id).
       bind(paragraph_id).
@@ -166,8 +166,6 @@ impl NewComment {
   }
 
   async fn insert_paragraph_comment(&self, db: &PgPool, user: &User) -> Result<i32, sqlx::Error> {
-    let paragraph_id = &self.paragraph_id.clone().unwrap();
-
     let result = sqlx::query(r#"
       INSERT INTO comments
       (user_id, blog_id, paragraph_id, text, created_at)
@@ -177,7 +175,7 @@ impl NewComment {
     "#).
       bind(&user.id).
       bind(&self.blog_id).
-      bind(paragraph_id).
+      bind(&self.paragraph_id).
       bind(&self.text).
       fetch_one(db);
 

@@ -44,6 +44,10 @@ export function Blog() {
         </Container>
         <Container
           maxWidth="md"
+          sx={{
+            marginTop: 5,
+            marginBottom: 20
+          }}
         >
           <Comments blogId={blogData!.blog.id} />
         </Container>

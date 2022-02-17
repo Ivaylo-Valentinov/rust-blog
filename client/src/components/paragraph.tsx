@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Switch, Typography } from '@mui/material';
+import { Box, Stack, Switch, Typography } from '@mui/material';
 import { BlogParagraph } from '../services/blog-service';
+import { Comments } from './comments';
 
 
 interface ParagraphProps {
@@ -14,7 +15,7 @@ export function Paragraph(props: ParagraphProps) {
     setChecked(event.target.checked);
   };
 
-  return (
+  return (<Stack direction="column">
     <Box 
       component="div" 
       sx={{
@@ -38,5 +39,8 @@ export function Paragraph(props: ParagraphProps) {
         onChange={handleChange}
       />
     </Box>
-  );
+    {checked && <Box>
+      <Comments blogId={props.paragraph.blog_id} paragraphId={props.paragraph.id} />
+    </Box>}
+    </Stack>);
 }

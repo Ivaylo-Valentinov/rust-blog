@@ -61,11 +61,11 @@ export async function loadPostById(id: string): Promise<BlogPostDetails | null> 
   return httpService.get<BlogPostDetails | null>(`/posts/${id}`);
 }
 
-export async function loadCommentsUsingParagraphId(paragraphId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
+export async function loadCommentsUsingParagraphId(blogId: number, paragraphId: number, pageNumber: number, pageSize: number): Promise<{ results: CommentModel[], pageCount: number | null }> {
   if (pageSize === 0) {
     return { results: [], pageCount: null };
   }
-  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?paragraphId=${paragraphId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?blog_id=${blogId}&paragraph_id=${paragraphId}&page_number=${pageNumber}&page_size=${pageSize}`);
   if (total === 0) {
     return { results: [], pageCount: null };
   }
@@ -77,7 +77,7 @@ export async function loadCommentsUsingPostId(blogId: number, pageNumber: number
   if (pageSize === 0) {
     return { results: [], pageCount: null };
   }
-  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?blogId=${blogId}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  const { results, total } = await httpService.get<{ results: CommentModel[], total: number }>(`/comments?blog_id=${blogId}&page_number=${pageNumber}&page_size=${pageSize}`);
   if (total === 0) {
     return { results: [], pageCount: null };
   }
@@ -87,10 +87,10 @@ export async function loadCommentsUsingPostId(blogId: number, pageNumber: number
 
 export async function addComment(blogId: number, commentText: string, paragraphId?: number) {
   if (paragraphId !== undefined) {
-    return httpService.post<CommentModel>('/comments', { blogId, commentText, paragraphId });
+    return httpService.post<CommentModel>('/comments', { blog_id: blogId, text: commentText, paragraph_id: paragraphId });
   }
   
-  return httpService.post<CommentModel>('/comments', { blogId, commentText, paragraphId });
+  return httpService.post<CommentModel>('/comments', { blog_id: blogId, text: commentText });
 }
 
 export async function deleteComment(id: number) {

@@ -45,7 +45,7 @@ export function Blog() {
         <Container
           maxWidth="md"
         >
-          {/* <Comments blogId={blogData!.blog.id} /> */}
+          <Comments blogId={blogData!.blog.id} />
         </Container>
       </>
       }

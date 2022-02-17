@@ -154,6 +154,22 @@ impl Blog {
 
     Ok(())
   }
+
+  pub async fn add_more_paragraphs(&self, db: &PgPool, text: &str)-> Result<(), sqlx::Error> {
+    let text = String::from(text);
+    let paragraphs = split_text_into_paragraphs(&text);
+
+    for paragraph_text in paragraphs.iter() {
+      let new_paragraph = NewParagraph {
+        blog_id: self.id.clone(),
+        text: String::from(*paragraph_text)
+      };
+
+      new_paragraph.insert(&db).await?;
+    }
+
+    Ok(())
+  }
 }
 
 impl Paragraph {

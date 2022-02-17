@@ -21,6 +21,11 @@ pub struct BlogDetails {
   pub likes: LikeInfo
 }
 
+#[derive(Debug, Deserialize)]
+pub struct AddTextData {
+  pub text: String
+}
+
 pub async fn create_new_draft(
   db:   web::Data<PgPool>,
   user: User,
@@ -176,9 +181,30 @@ pub async fn publish(
   send_json(blog.publish(&db).await)
 }
 
-pub async fn something(
-  _db:   web::Data<PgPool>,
-  user: User
+pub async fn add_more_paragraphs(
+  db:   web::Data<PgPool>,
+  user: User,
+  path: web::Path<i32>,
+  form: web::Json<AddTextData>
 ) -> HttpResponse {
-  send_json(Ok(&user))
+  let web::Path(id) = path;
+  let text = form.into_inner().text;
+
+  let blog = Blog::find_by_id(&db, &id).await;
+
+  if let Err(_) = blog {
+    return send_error("Not valid id!")
+  }
+
+  let blog = blog.unwrap();
+
+  if blog.is_draft {
+    return send_error("This is a draft post!")
+  }
+
+  if blog.added_by != user.id {
+    return send_error("Cannot edit posts you don't own!")
+  }
+
+  send_json(blog.add_more_paragraphs(&db, &text).await)
 }

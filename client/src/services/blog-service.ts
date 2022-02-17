@@ -117,6 +117,10 @@ export async function publishBlogPost(id: string) {
   return httpService.post<BlogModel>(`/posts/${id}`, {});
 }
 
+export async function addMoreText(id: number, text: string) {
+  return httpService.post(`/posts/${id}/edit`, { text });
+}
+
 export async function loadSearchBlogByTitle(title: string, pageNumber: number, pageSize: number): Promise<{ results: BlogModel[], pageCount: number | null }> {
   if (pageSize === 0) {
     return { results: [], pageCount: null };

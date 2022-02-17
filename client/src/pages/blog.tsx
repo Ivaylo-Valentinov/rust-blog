@@ -7,11 +7,12 @@ import { useParams } from 'react-router-dom';
 import { loadPostById } from '../services/blog-service';
 import { Comments } from '../components/comments';
 import { Paragraph } from '../components/paragraph';
+import { EditBlogButton } from '../components/edit-blog-button';
 
 export function Blog() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: blogData, loading, error } = useAsync(() => loadPostById(id || ''), []);
+  const { data: blogData, loading, error, reload } = useAsync(() => loadPostById(id || ''), []);
 
   return (
     <Loading loading={loading} error={error} size={100} >
@@ -33,6 +34,7 @@ export function Blog() {
               {blogData!.blog.title}
             </Typography>
             <Likes id={id!} userLiked={blogData!.likes.user_liked} likeCount={blogData!.likes.like_count} />
+            <EditBlogButton blog={blogData!.blog} reload={() => reload()} />
           </Box>
           <Box
             sx={{

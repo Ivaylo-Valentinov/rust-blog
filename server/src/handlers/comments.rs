@@ -39,3 +39,25 @@ pub async fn get_paginated_comments(
     &pagination.page_size
   ).await)
 }
+
+pub async fn delete(
+  db:   web::Data<PgPool>,
+  user: User,
+  path: web::Path<i32>
+) -> HttpResponse {
+  let web::Path(id) = path;
+
+  let comment = Comment::find_by_id(&db, &id).await;
+
+  if let Err(_) = comment {
+    return send_error("Not valid id!")
+  }
+
+  let comment = comment.unwrap();
+
+  if comment.user_id != user.id {
+    return send_error("Cannot delete comments you don't own!")
+  }
+
+  send_json(comment.delete(&db).await)
+}

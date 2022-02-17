@@ -30,7 +30,7 @@ pub fn configuration() -> Box<dyn Fn(&mut web::ServiceConfig)> {
         route(web::get().to(handlers::comments::get_paginated_comments)). //Get paginated comments
         route(web::post().to(handlers::comments::create_new_comment)) //Add comment
       ).
-      route("/comments/{id}", web::delete().to(handlers::blogs::something)). //Delete comment
+      route("/comments/{id}", web::delete().to(handlers::comments::delete)). //Delete comment
       route("/posts/{id}/draft", web::post().to(handlers::blogs::update_new_draft)); //Save draft post
   })
 }

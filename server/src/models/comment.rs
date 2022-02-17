@@ -121,6 +121,24 @@ impl Comment {
       None       => Comment::get_all_comments_for_blog(db, blog_id, page_number, page_size).await
     }
   }
+
+  pub async fn find_by_id(db: &PgPool, id: &i32) -> Result<Comment, sqlx::Error> {
+    sqlx::query_as::<_, Comment>("SELECT * FROM comments WHERE id = $1").
+      bind(id).
+      fetch_one(db).await
+  }
+
+  pub async fn delete(&self, db: &PgPool) -> Result<(), sqlx::Error> {
+    sqlx::query(r#"
+      DELETE
+      FROM comments
+      WHERE id = $1
+    "#).
+      bind(&self.id).
+      execute(db).await?;
+
+    Ok(())
+  }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -1,16 +1,9 @@
-use actix_web::{guard, web, App, HttpRequest, HttpServer, HttpResponse};
+use actix_web::{web, App, HttpServer, HttpResponse};
 use actix_cors::Cors;
 use sqlx::PgPool;
 use dotenv::dotenv;
 
-mod handlers;
-mod models;
-mod routing;
-mod error;
-
-async fn hello_web(_request: HttpRequest) -> HttpResponse {
-  HttpResponse::Ok().body("Hello, Web!")
-}
+use server::routing;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -29,12 +22,7 @@ async fn main() -> std::io::Result<()> {
     app_data(db.clone()).
     default_service(
       web::resource("").
-      route(web::get().to(hello_web)).
-      route(
-        web::route().
-        guard(guard::Not(guard::Get())).
-        to(HttpResponse::MethodNotAllowed),
-      ),
+      route(web::route().to(HttpResponse::MethodNotAllowed))
     )
   });
 

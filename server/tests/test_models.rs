@@ -5,6 +5,7 @@ use bcrypt::{verify};
 use server::models::user::{NewUser, User};
 use server::models::blog::{NewDraft, Blog, Paragraph, PaginatedBlogs};
 use server::models::like::Like;
+use server::models::comment::{NewComment, Comment, PaginatedComments};
 
 fn is_error<T, E>(result: Result<T, E>) -> bool {
   match result {
@@ -355,4 +356,61 @@ async fn test_likes() {
   let like_info = Like::get_likes_info(&db, &user.id, &blog.id).await.unwrap();
   assert!(!like_info.user_liked);
   assert_eq!(like_info.like_count, 0);
+}
+
+#[actix_rt::test]
+async fn test_comments_pagination() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text\nmore text");
+
+  let user = create_a_user(&db).await;
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let draft = Blog::find_by_id(&db, &id).await.unwrap();
+
+  draft.publish(&db).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+  let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await.unwrap();
+
+  let new_blog_comment = NewComment {
+    blog_id: blog.id.clone(),
+    paragraph_id: None,
+    text: text.clone()
+  };
+
+  let new_paragraph_comment = NewComment {
+    blog_id: blog.id.clone(),
+    paragraph_id: Some(paragraphs[0].id.clone()),
+    text: text.clone()
+  };
+
+  let comment_id = new_blog_comment.insert(&db, &user).await.unwrap();
+  new_paragraph_comment.insert(&db, &user).await.unwrap();
+
+  let page_number = 0;
+  let page_size = 2;
+
+  let paragraph_id = None;
+  let comments: PaginatedComments = Comment::get_all_comments(&db, &blog.id, &paragraph_id, &page_number, &page_size).await.unwrap();
+  let paragraph_id = None;Some(paragraphs[0].id);
+  let comments1: PaginatedComments = Comment::get_all_comments(&db, &blog.id, &paragraph_id, &page_number, &page_size).await.unwrap();
+
+  assert_eq!(comments.results.len(), 1);
+  assert_eq!(comments1.results.len(), 1);
+  assert_eq!(comments.total, 1);
+  assert_eq!(comments1.total, 1);
+
+  Comment::find_by_id(&db, &comment_id).await.unwrap().delete(&db).await.unwrap();
+
+  let comments: PaginatedComments = Comment::get_all_comments(&db, &blog.id, &paragraph_id, &page_number, &page_size).await.unwrap();
+
+  assert_eq!(comments.results.len(), 0);
+  assert_eq!(comments.total, 0);
 }

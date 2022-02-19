@@ -3,6 +3,7 @@ use sqlx::PgPool;
 use bcrypt::{verify};
 
 use server::models::user::{NewUser, User};
+use server::models::blog::{NewDraft, Blog, Paragraph};
 
 fn is_error<T, E>(result: Result<T, E>) -> bool {
   match result {
@@ -129,4 +130,96 @@ async fn test_user_get_user_by_auth_token() {
 
   let some_non_existing_auth_token = String::from("some_non_existing_auth_token");
   assert!(is_error(User::get_user_by_auth_token(&db, &some_non_existing_auth_token).await))
+}
+
+#[actix_rt::test]
+async fn test_blog_create_draft() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text");
+
+  let user = create_a_user(&db).await;
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+
+  assert_eq!(blog.id, id);
+  assert!(blog.is_draft);
+  assert_eq!(blog.added_by, user.id);
+  assert_eq!(blog.title, title);
+  assert_eq!(blog.text.unwrap(), text);
+
+  let non_existent_id = id + 1;
+  let non_blog = Blog::find_by_id(&db, &non_existent_id).await;
+  assert!(is_error(non_blog));
+}
+
+#[actix_rt::test]
+async fn test_blog_publish_draft() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text");
+
+  let user = create_a_user(&db).await;
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let draft = Blog::find_by_id(&db, &id).await.unwrap();
+
+  draft.publish(&db).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+
+  assert_eq!(blog.id, id);
+  assert_eq!(blog.title, title);
+  assert!(!blog.is_draft);
+  assert!(blog.text.is_none());
+  assert_eq!(blog.added_by, user.id);
+  
+
+  let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await.unwrap();
+
+  assert_eq!(paragraphs.len(), 1);
+}
+
+#[actix_rt::test]
+async fn test_blog_publish_draft_with_multiple_paragraphs() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text\n\nntext\ntext\n\n");
+
+  let user = create_a_user(&db).await;
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let draft = Blog::find_by_id(&db, &id).await.unwrap();
+
+  draft.publish(&db).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+
+  assert_eq!(blog.id, id);
+  assert_eq!(blog.title, title);
+  assert!(!blog.is_draft);
+  assert!(blog.text.is_none());
+  assert_eq!(blog.added_by, user.id);
+  
+
+  let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await.unwrap();
+
+  assert_eq!(paragraphs.len(), 3);
 }

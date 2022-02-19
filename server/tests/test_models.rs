@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use bcrypt::{verify};
 
 use server::models::user::{NewUser, User};
-use server::models::blog::{NewDraft, Blog, Paragraph};
+use server::models::blog::{NewDraft, Blog, Paragraph, PaginatedBlogs};
 use server::models::like::Like;
 
 fn is_error<T, E>(result: Result<T, E>) -> bool {
@@ -259,6 +259,57 @@ async fn test_blog_publish_draft_with_cyrilic() {
 }
 
 #[actix_rt::test]
+async fn test_blog_pagination() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text");
+
+  let user = create_a_user(&db).await;
+  let user1 = create_a_logged_user(&db).await;
+
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id1 = new_draft.insert(&db, &user).await.unwrap();
+  let id2 = new_draft.insert(&db, &user).await.unwrap();
+  let id3 = new_draft.insert(&db, &user).await.unwrap();
+
+  let new_draft = NewDraft {
+    title: String::from("new title"),
+    text: text.clone()
+  };
+  let id4 = new_draft.insert(&db, &user).await.unwrap();
+
+  let page_number = 0;
+  let page_size = 2;
+
+  let drafts: PaginatedBlogs = Blog::find_all_drafts(&db, &user, &page_number, &page_size).await.unwrap();
+  let drafts1: PaginatedBlogs = Blog::find_all_drafts(&db, &user1, &page_number, &page_size).await.unwrap();
+
+  assert_eq!(drafts.results.len(), 2);
+  assert_eq!(drafts1.results.len(), 0);
+  assert_eq!(drafts.total, 4);
+  assert_eq!(drafts1.total, 0);
+
+  Blog::find_by_id(&db, &id1).await.unwrap().publish(&db).await.unwrap();
+  Blog::find_by_id(&db, &id2).await.unwrap().publish(&db).await.unwrap();
+  Blog::find_by_id(&db, &id3).await.unwrap().publish(&db).await.unwrap();
+  Blog::find_by_id(&db, &id4).await.unwrap().publish(&db).await.unwrap();
+
+  let published: PaginatedBlogs = Blog::find_all_published(&db, "%", &page_number, &page_size).await.unwrap();
+  let published1: PaginatedBlogs = Blog::find_all_published(&db, "some title", &page_number, &page_size).await.unwrap();
+
+  assert_eq!(published.results.len(), 2);
+  assert_eq!(published1.results.len(), 2);
+  assert_eq!(published.total, 4);
+  assert_eq!(published1.total, 3);
+}
+
+#[actix_rt::test]
 async fn test_likes() {
   let db = get_db().await;
   clean_db(&db).await;
@@ -297,4 +348,11 @@ async fn test_likes() {
   assert!(!like_info1.user_liked);
   assert_eq!(like_info.like_count, 1);
   assert_eq!(like_info1.like_count, 1);
+
+  assert!(is_error(Like::insert(&db, &user.id, &blog.id).await));
+
+  Like::delete(&db, &user.id, &blog.id).await.unwrap();
+  let like_info = Like::get_likes_info(&db, &user.id, &blog.id).await.unwrap();
+  assert!(!like_info.user_liked);
+  assert_eq!(like_info.like_count, 0);
 }

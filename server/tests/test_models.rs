@@ -4,6 +4,7 @@ use bcrypt::{verify};
 
 use server::models::user::{NewUser, User};
 use server::models::blog::{NewDraft, Blog, Paragraph};
+use server::models::like::Like;
 
 fn is_error<T, E>(result: Result<T, E>) -> bool {
   match result {
@@ -222,4 +223,78 @@ async fn test_blog_publish_draft_with_multiple_paragraphs() {
   let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await.unwrap();
 
   assert_eq!(paragraphs.len(), 3);
+}
+
+#[actix_rt::test]
+async fn test_blog_publish_draft_with_cyrilic() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("Заглавие");
+  let text = String::from("текст\n\nоще текстс ссс\nескстс\n\n");
+
+  let user = create_a_user(&db).await;
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let draft = Blog::find_by_id(&db, &id).await.unwrap();
+
+  draft.publish(&db).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+
+  assert_eq!(blog.id, id);
+  assert_eq!(blog.title, title);
+  assert!(!blog.is_draft);
+  assert!(blog.text.is_none());
+  assert_eq!(blog.added_by, user.id);
+  
+
+  let paragraphs = Paragraph::get_all_paragraphs_by_blog_id(&db, &blog.id).await.unwrap();
+
+  assert_eq!(paragraphs.len(), 3);
+  assert_eq!(paragraphs[0].text, String::from("текст"));
+}
+
+#[actix_rt::test]
+async fn test_likes() {
+  let db = get_db().await;
+  clean_db(&db).await;
+
+  let title = String::from("some title");
+  let text = String::from("some text");
+
+  let user = create_a_user(&db).await;
+  let user1 = create_a_logged_user(&db).await;
+
+  let new_draft = NewDraft {
+    title: title.clone(),
+    text: text.clone()
+  };
+
+  let id = new_draft.insert(&db, &user).await.unwrap();
+  let draft = Blog::find_by_id(&db, &id).await.unwrap();
+
+  draft.publish(&db).await.unwrap();
+  let blog = Blog::find_by_id(&db, &id).await.unwrap();
+
+  let like_info = Like::get_likes_info(&db, &user.id, &blog.id).await.unwrap();
+  let like_info1 = Like::get_likes_info(&db, &user1.id, &blog.id).await.unwrap();
+
+  assert!(!like_info.user_liked);
+  assert!(!like_info1.user_liked);
+  assert_eq!(like_info.like_count, 0);
+  assert_eq!(like_info1.like_count, 0);
+
+  Like::insert(&db, &user.id, &blog.id).await.unwrap();
+
+  let like_info = Like::get_likes_info(&db, &user.id, &blog.id).await.unwrap();
+  let like_info1 = Like::get_likes_info(&db, &user1.id, &blog.id).await.unwrap();
+
+  assert!(like_info.user_liked);
+  assert!(!like_info1.user_liked);
+  assert_eq!(like_info.like_count, 1);
+  assert_eq!(like_info1.like_count, 1);
 }
